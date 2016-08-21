@@ -41,16 +41,29 @@ public class HomeController extends Controller {
       data.set("suggestion",objectMapper.valueToTree(suggestions));
 
       List<JsonNode> connections = user.connections.stream().map(x -> {
-      User connectedUser = User.find.byId(userId);
-      Profile connectedProfile = Profile.find.byId(user.profile.id);
+      User connectedUser = User.find.byId(x.id);
+      Profile connectedProfile = Profile.find.byId(connectedUser.profile.id);
       ObjectNode connectionjson = objectMapper.createObjectNode();
       connectionjson.put("email",connectedUser.email);
       connectionjson.put("firstName",connectedProfile.firstName);
-      connectionjson.put("lastname",connectedProfile.lastName);
+      connectionjson.put("lastName",connectedProfile.lastName);
       return connectionjson;
 
-  }).collect(Collectors.toList());
-      data.set("connections",objectMapper.valueToTree(connections));
+      }).collect(Collectors.toList());
+      data.set("connections", objectMapper.valueToTree(connections));
+
+      List<JsonNode> requestors = user.connectionRequestsReceived.stream().map(x -> {
+          User requestor = User.find.byId(x.sender.id);
+          Profile requestorProfile = Profile.find.byId(user.profile.id);
+          ObjectNode requestorJson = objectMapper.createObjectNode();
+          requestorJson.put("email", requestor.email);
+          requestorJson.put("firstName", requestorProfile.firstName);
+          requestorJson.put("lastName", requestorProfile.lastName);
+          requestorJson.put("connectionRequestId", x.id);
+          return requestorJson;
+      }).collect(Collectors.toList());
+      data.set("connectionRequestsReceived", objectMapper.valueToTree(requestors));
+
       return ok();
   }
 
